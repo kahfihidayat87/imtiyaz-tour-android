@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.ImtiyazTour" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#063D31</item>
+        <item name="android:windowBackground">#063D31</item>
+    </style>
+</resources>
