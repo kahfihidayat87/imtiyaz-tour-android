@@ -27,9 +27,6 @@ import com.imtiyaztour.app.*
 import com.imtiyaztour.app.R
 import kotlinx.coroutines.tasks.await
 
-// Nomor WhatsApp admin resmi IMTIYAZ (0811-277-6543) dalam format internasional.
-private const val WA_ADMIN_NUMBER = "628112776543"
-
 // PENTING: layar ini TIDAK membuka WebView atau browser eksternal.
 // Satu-satunya intent ke aplikasi lain di sini adalah membuka WhatsApp lewat
 // tombol Chat/Daftar - permintaan eksplisit, bukan menampilkan konten web di app.
@@ -198,15 +195,7 @@ private fun WhatsappCta(label: String, onClick: () -> Unit) {
 }
 
 private fun bukaWhatsappAdmin(context: android.content.Context, pesan: String) {
-    // Prioritaskan APLIKASI WhatsApp yang terinstall (bukan WhatsApp Web/browser).
-    val uri = Uri.parse("https://api.whatsapp.com/send?phone=$WA_ADMIN_NUMBER&text=" + Uri.encode(pesan))
-    for (pkg in listOf("com.whatsapp", "com.whatsapp.w4b")) {
-        try {
-            context.startActivity(Intent(Intent.ACTION_VIEW, uri).setPackage(pkg))
-            return
-        } catch (e: Exception) { }
-    }
-    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/$WA_ADMIN_NUMBER?text=" + Uri.encode(pesan))))
+    bukaWhatsapp(context, pesan)
 }
 
 @Composable

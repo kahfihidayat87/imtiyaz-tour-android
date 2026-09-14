@@ -7,6 +7,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -67,16 +69,17 @@ fun RootApp() {
             }
         }
     ) { padding ->
-        Modifier.padding(padding)
-        when (tab) {
-            Tab.BERANDA -> PaketScreen(
-                namaJamaah = namaJamaah,
-                onLogout = { Session.logout(context); sessionVersion++ },
-                onOpenAkun = { tab = Tab.AKUN }
-            )
-            Tab.DOA -> DoaManasikScreen()
-            Tab.LAYANAN -> LayananScreen()
-            Tab.AKUN -> AkunScreen()
+        Box(Modifier.padding(padding).fillMaxSize()) {
+            when (tab) {
+                Tab.BERANDA -> PaketScreen(
+                    namaJamaah = namaJamaah,
+                    onLogout = { Session.logout(context); sessionVersion++ },
+                    onOpenAkun = { tab = Tab.AKUN }
+                )
+                Tab.DOA -> DoaManasikScreen()
+                Tab.LAYANAN -> LayananScreen()
+                Tab.AKUN -> AkunScreen()
+            }
         }
     }
 }

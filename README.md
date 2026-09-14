@@ -23,15 +23,36 @@ Build APK akan **GAGAL** kalau langkah ini belum dilakukan, karena plugin
 1. Buka [Firebase Console](https://console.firebase.google.com), buat project baru (gratis).
 2. Di dalam project itu, klik **Add app → Android**. Isi package name persis:
    `com.imtiyaztour.app`
-3. Download file **`google-services.json`** yang ditawarkan, lalu **taruh di folder
-   `app/`** (sejajar dengan `build.gradle.kts` di dalam folder app), sebelum push ke GitHub.
-4. Di Firebase Console: **Project Settings (ikon gerigi) → Service Accounts → Generate
+3. Download file **`google-services.json`** yang ditawarkan.
+4. **JANGAN taruh file itu langsung di folder `app/` lalu di-push ke GitHub** — file
+   itu berisi API key yang akan ditandai GitHub sebagai "secret terekspos" begitu
+   ter-commit (`.gitignore` di project ini sudah mengecualikan file ini supaya tidak
+   ke-commit kalau kamu taruh di situ, tapi kalau kamu build via GitHub Actions,
+   file itu tetap harus ADA saat proses build — caranya lewat GitHub Secret, bukan
+   commit langsung):
+   - Buka isi `google-services.json` (bentuknya teks JSON satu blok), copy semuanya.
+   - Di GitHub: repo kamu → Settings → Secrets and variables → Actions → New
+     repository secret.
+   - Name: `GOOGLE_SERVICES_JSON`, Value: paste seluruh isi JSON itu, Save.
+   - Workflow (`build-apk.yml`) sudah saya siapkan untuk otomatis membuat file ini
+     dari secret itu setiap kali build — kamu tidak perlu commit filenya sama sekali.
+   - Kalau kamu build LEWAT ANDROID STUDIO DI LAPTOP (bukan GitHub Actions), taruh
+     file itu di folder `app/` seperti biasa di laptop kamu saja — `.gitignore` akan
+     mencegahnya ikut ter-commit kalau nanti kamu push.
+5. Di Firebase Console: **Project Settings (ikon gerigi) → Service Accounts → Generate
    new private key**. Ini download file JSON kredensial SERVER (beda dari
-   `google-services.json` di langkah 3).
-5. Buka WP Admin → Imtiyaz Jamaah → **Pengaturan Notifikasi** (perlu `imtiyaz-connector`
-   versi terbaru sudah aktif), paste seluruh isi file dari langkah 4 ke situ, simpan.
+   `google-services.json` di langkah 3) — paste ke WP Admin → Imtiyaz Jamaah →
+   **Pengaturan Notifikasi**, bukan ke GitHub.
 6. Setelah jamaah login sekali di app (token FCM otomatis terdaftar), test kirim
    notifikasi dari halaman Pengaturan Notifikasi tadi.
+
+**⚠️ Kalau `google-services.json` SUDAH pernah ter-commit sebelumnya** (seperti yang
+kena flag GitHub Secret Scanning): menghapus/gitignore ke depan TIDAK menghapusnya dari
+riwayat commit lama. Yang benar-benar menutup risikonya: buka Google Cloud Console →
+APIs & Services → Credentials → cari API key itu → **Application restrictions: Android
+apps** (isi package name `com.imtiyaztour.app` + SHA-1 keystore kamu) dan **API
+restrictions**: centang hanya API Firebase yang dipakai. Setelah dibatasi begini, key
+itu tidak bisa disalahgunakan siapa pun walau terlihat di riwayat GitHub.
 
 **Kalau belum mau setup Firebase dulu** dan cuma mau build APK untuk fitur lain, hapus
 3 baris ini dari `app/build.gradle.kts` dan baris terkait di `build.gradle.kts` (root)
