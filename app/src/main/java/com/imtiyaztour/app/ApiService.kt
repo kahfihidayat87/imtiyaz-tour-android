@@ -72,9 +72,28 @@ data class UploadBuktiResponse(
 
 data class SkriningResponse(val success: Boolean? = null, val error: String? = null)
 
+// Trip live individual (jadwal keberangkatan asli), dari GET /api/paket-live
+data class TripLive(
+    val id: Int? = null,
+    val judul: String? = null,
+    val tipe: String? = null,
+    val tipe_slug: String? = null,
+    val tanggal: String? = null,
+    val harga: String? = null,
+    val url: String? = null,
+    val status: String? = null // "OPEN" / "CLOSED"
+)
+data class PaketLiveResponse(
+    val existing_types: List<Paket> = emptyList(),
+    val latest_trips: List<TripLive> = emptyList()
+)
+
 interface ImtiyazApiService {
     @GET("api/paket")
     suspend fun getPaket(): List<Paket>
+
+    @GET("api/paket-live")
+    suspend fun getPaketLive(): PaketLiveResponse
 
     @GET("api/jamaah/{id}")
     suspend fun getJamaahStatus(@Path("id") jamaahId: String): JamaahStatus
