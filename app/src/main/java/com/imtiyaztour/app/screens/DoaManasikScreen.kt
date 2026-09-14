@@ -87,6 +87,20 @@ private val DAFTAR_DOA = listOf(
         "Allahummaghfir lil-muhalliqiina wal-muqashshiriin",
         "Ya Allah, ampunilah orang-orang yang mencukur habis rambutnya dan yang memendekkannya.",
         "https://pastiumrah.com/wp-content/uploads/doa/07-tahallul.mp3"
+    ),
+    Doa(
+        "Doa Safar (Perjalanan)",
+        "اللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ، اللَّهُ أَكْبَرُ. سُبْحَانَ الَّذِي سَخَّرَ لَنَا هٰذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ وَإِنَّا إِلَىٰ رَبِّنَا لَمُنْقَلِبُونَ. اللّٰهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هٰذَا الْبِرَّ وَالتَّقْوَىٰ، وَمِنَ الْعَمَلِ مَا تَرْضَىٰ. اللّٰهُمَّ هَوِّنْ عَلَيْنَا سَفَرَنَا هٰذَا وَاطْوِ عَنَّا بُعْدَهُ",
+        "Allahu akbar, Allahu akbar, Allahu akbar. Subhaanalladzii sakhkhara lanaa haadzaa wa maa kunnaa lahu muqriniin wa innaa ilaa rabbinaa lamunqalibuun. Allahumma innaa nas-aluka fii safarinaa haadzal birra wat-taqwaa, wa minal 'amali maa tardhaa. Allahumma hawwin 'alainaa safaranaa haadzaa wathwi 'annaa bu'dahu",
+        "Allah Maha Besar (3x). Maha Suci Allah yang telah menundukkan ini untuk kami padahal kami tidak mampu menguasainya, dan sesungguhnya kami akan kembali kepada Tuhan kami. Ya Allah, kami mohon kepada-Mu dalam perjalanan ini kebaikan dan ketakwaan, dan amal yang Engkau ridhai. Ya Allah, mudahkanlah perjalanan kami ini dan dekatkanlah jaraknya yang jauh.",
+        "https://pastiumrah.com/wp-content/uploads/doa/08-safar.mp3"
+    ),
+    Doa(
+        "Doa Naik Kendaraan",
+        "بِسْمِ اللّٰهِ، الْحَمْدُ لِلّٰهِ، سُبْحَانَ الَّذِي سَخَّرَ لَنَا هٰذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ، وَإِنَّا إِلَىٰ رَبِّنَا لَمُنْقَلِبُونَ",
+        "Bismillaah, alhamdulillaah, subhaanalladzii sakhkhara lanaa haadzaa wa maa kunnaa lahu muqriniin, wa innaa ilaa rabbinaa lamunqalibuun",
+        "Dengan nama Allah, segala puji bagi Allah. Maha Suci Allah yang telah menundukkan kendaraan ini untuk kami padahal kami sebelumnya tidak mampu menguasainya, dan sesungguhnya kami akan kembali kepada Tuhan kami.",
+        "https://pastiumrah.com/wp-content/uploads/doa/09-naik-kendaraan.mp3"
     )
 )
 
@@ -95,7 +109,7 @@ private data class ManasikStep(val judul: String, val isi: String)
 private val PANDUAN_MANASIK = listOf(
     ManasikStep("1. Ihram", "Mandi sunnah, kenakan pakaian ihram (kain putih tanpa jahitan untuk pria), niat umrah dari miqat, lalu perbanyak talbiyah selama perjalanan menuju Makkah. Sejak ihram, hindari larangan ihram: memotong kuku/rambut, memakai wangi-wangian, berhubungan suami-istri, dan bertengkar/berkata kotor."),
     ManasikStep("2. Tawaf", "Mengelilingi Ka'bah 7 kali putaran berlawanan arah jarum jam, dimulai dan diakhiri sejajar Hajar Aswad. Perbanyak doa dan dzikir selama tawaf, terutama di antara Rukun Yamani dan Hajar Aswad."),
-    ManasikStep("3. Shalat di Belakang Maqam Ibrahim", "Setelah tawaf, shalat sunnah 2 rakaat di belakang/dekat Maqam Ibrahim (kalau ramai, boleh di area mana saja dalam Masjidil Haram)."),
+    ManasikStep("3. Shalat di Belakang Maqam Ibrahim", "Setelah tawaf, shalat sunnah 2 rakaat di belakang/dekat Maqam Ibrahim (kalau ramai, boleh di area mana saja dalam Masjidil Haram). Rakaat pertama: setelah Al-Fatihah, membaca Surat Al-Kafirun. Rakaat kedua: setelah Al-Fatihah, membaca Surat Al-Ikhlas."),
     ManasikStep("4. Sa'i", "Berjalan/berlari kecil antara Bukit Shafa dan Marwah sebanyak 7 kali (dihitung Shafa ke Marwah = 1 kali)."),
     ManasikStep("5. Tahallul", "Mencukur habis rambut (bagi pria, lebih utama) atau memendekkan rambut (minimal seukuran ruas jari). Setelah tahallul, seluruh larangan ihram menjadi halal kembali - umrah selesai."),
 )

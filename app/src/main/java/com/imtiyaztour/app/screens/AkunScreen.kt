@@ -83,8 +83,13 @@ private fun AkunHub(
         }
 
         Spacer(Modifier.weight(1f))
-        OutlinedButton(onClick = onLogout, modifier = Modifier.fillMaxWidth()) {
-            Text("Keluar", color = Muted)
+        OutlinedButton(
+            onClick = onLogout,
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Danger),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Danger),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("🚪  Keluar", fontWeight = FontWeight.Bold)
         }
     }
 }

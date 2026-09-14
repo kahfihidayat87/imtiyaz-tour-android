@@ -1,7 +1,5 @@
 package com.imtiyaztour.app.screens
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,36 +7,42 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.imtiyaztour.app.*
 
-private const val URL_EVALUASI = "https://pastiumrah.com/halaman-evaluasi-umroh/"
-
 /**
- * Halaman "Layanan" - berisi Skrining Kesehatan (native, sudah ada) dan
- * Evaluasi Pelayanan. Evaluasi dibuka lewat browser eksternal (bukan WebView
- * tertanam) karena itu formulir WordPress yang strukturnya tidak kita kontrol
- * (beda kasus dengan detail paket yang datanya kita ambil lewat API sendiri).
- * Tidak perlu login untuk mengakses keduanya.
+ * Halaman "Layanan" - berisi Skrining Kesehatan dan Evaluasi Pelayanan,
+ * KEDUANYA sekarang native (bukan browser eksternal lagi) - datanya masuk
+ * ke tabel WordPress yang sama persis dengan yang dipakai plugin form
+ * masing-masing yang sudah aktif. Tidak perlu login untuk mengakses keduanya.
  */
+private enum class LayananSub { HUB, SKRINING, EVALUASI }
+
 @Composable
 fun LayananScreen() {
-    val context = LocalContext.current
-    var showSkrining by remember { mutableStateOf(false) }
+    var sub by remember { mutableStateOf(LayananSub.HUB) }
 
-    if (showSkrining) {
-        Column(Modifier.fillMaxSize()) {
-            TextButton(onClick = { showSkrining = false }, modifier = Modifier.padding(start = 8.dp, top = 8.dp)) {
-                Text("< Kembali ke Layanan", color = BrandGoldSoft, fontSize = 13.sp)
-            }
-            SkriningScreen()
-        }
-        return
+    when (sub) {
+        LayananSub.SKRINING -> WithBackToLayanan({ sub = LayananSub.HUB }) { SkriningScreen() }
+        LayananSub.EVALUASI -> WithBackToLayanan({ sub = LayananSub.HUB }) { EvaluasiScreen() }
+        LayananSub.HUB -> LayananHub(onOpen = { sub = it })
     }
+}
 
+@Composable
+private fun WithBackToLayanan(onBack: () -> Unit, content: @Composable () -> Unit) {
+    Column(Modifier.fillMaxSize()) {
+        TextButton(onClick = onBack, modifier = Modifier.padding(start = 8.dp, top = 8.dp)) {
+            Text("< Kembali ke Layanan", color = BrandGoldSoft, fontSize = 13.sp)
+        }
+        content()
+    }
+}
+
+@Composable
+private fun LayananHub(onOpen: (LayananSub) -> Unit) {
     Column(Modifier.fillMaxSize().background(BrandGreen).padding(16.dp)) {
         Text("Layanan", color = Sand, fontSize = 22.sp, fontWeight = FontWeight.Bold)
         Text("Tidak perlu login untuk mengakses layanan ini", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp, bottom = 16.dp))
@@ -46,15 +50,13 @@ fun LayananScreen() {
         LayananCard(
             icon = "🩺", judul = "Skrining Kesehatan",
             deskripsi = "Isi kuesioner kesehatan 29 pertanyaan sebelum keberangkatan umrah.",
-            onClick = { showSkrining = true }
+            onClick = { onOpen(LayananSub.SKRINING) }
         )
         Spacer(Modifier.height(12.dp))
         LayananCard(
             icon = "📋", judul = "Evaluasi Pelayanan",
             deskripsi = "Beri masukan tentang pelayanan IMTIYAZ selama perjalanan umrah kamu.",
-            onClick = {
-                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(URL_EVALUASI)))
-            }
+            onClick = { onOpen(LayananSub.EVALUASI) }
         )
     }
 }

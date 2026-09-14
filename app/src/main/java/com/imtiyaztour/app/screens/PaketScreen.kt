@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.imtiyaztour.app.*
 import com.imtiyaztour.app.R
+import kotlinx.coroutines.tasks.await
 
 // Nomor WhatsApp admin resmi IMTIYAZ (0811-277-6543) dalam format internasional.
 private const val WA_ADMIN_NUMBER = "628112776543"
@@ -155,7 +156,7 @@ private fun HeroHeader(namaJamaah: String, onOpenAkun: () -> Unit) {
         }
         Spacer(Modifier.height(12.dp))
         Text(
-            "Biro resmi PPIU terdaftar di Kemenag RI No. 383/2021 — umrah ramah lansia, pendampingan 24 jam.",
+            "Biro Resmi Penyelenggara Ibadah Umrah (PPIU) No. 383/2021 - Travel Umrah Nyaman Lansia #1 Terbaik",
             color = Sand.copy(alpha = 0.85f), fontSize = 12.sp, lineHeight = 17.sp
         )
     }
@@ -199,18 +200,72 @@ private fun WhatsappCta(label: String, onClick: () -> Unit) {
 }
 
 private fun bukaWhatsappAdmin(context: android.content.Context, pesan: String) {
-    val url = "https://wa.me/$WA_ADMIN_NUMBER?text=" + Uri.encode(pesan)
-    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    // PENTING: prioritaskan membuka APLIKASI WhatsApp yang terinstall di HP
+    // (bukan WhatsApp Web/browser). Coba WhatsApp reguler dulu, lalu WhatsApp
+    // Business, baru fallback ke wa.me kalau memang tidak ada satupun yang
+    // terinstall (supaya tetap ada jalan keluar, bukan macet total).
+    val uri = Uri.parse("https://api.whatsapp.com/send?phone=$WA_ADMIN_NUMBER&text=" + Uri.encode(pesan))
+    val paketWaCoba = listOf("com.whatsapp", "com.whatsapp.w4b")
+    for (pkg in paketWaCoba) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, uri).setPackage(pkg)
+            context.startActivity(intent)
+            return
+        } catch (e: Exception) { /* app itu tidak terinstall, coba paket berikutnya */ }
+    }
+    // Tidak ada WhatsApp terinstall sama sekali - fallback terakhir.
+    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/$WA_ADMIN_NUMBER?text=" + Uri.encode(pesan))))
 }
 
 @Composable
 private fun JadwalShalatCard() {
+    val context = LocalContext.current
     var timings by remember { mutableStateOf<TimingsData?>(null) }
+    var namaLokasi by remember { mutableStateOf("Makkah") }
     var loading by remember { mutableStateOf(true) }
 
+    val permLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { /* hasil ditangani lewat pengecekan ulang di LaunchedEffect berikutnya */ }
+
     LaunchedEffect(Unit) {
+        var lat = MAKKAH_LAT
+        var lng = MAKKAH_LNG
+
+        val sudahDiizinkan = androidx.core.content.ContextCompat.checkSelfPermission(
+            context, android.Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        if (!sudahDiizinkan) {
+            permLauncher.launch(android.Manifest.permission.ACCESS_COARSE_LOCATION)
+        }
+
         try {
-            val res = AladhanApi.service.getTimingsMakkah()
+            if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED ||
+                androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) {
+                val fused = com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(context)
+                val loc = fused.lastLocation.await()
+                if (loc != null) {
+                    lat = loc.latitude
+                    lng = loc.longitude
+                    // Reverse geocode - kalau gagal (mis. tidak ada koneksi/layanan geocoding),
+                    // tetap lanjut pakai koordinatnya, cuma label kota fallback ke "Makkah".
+                    try {
+                        val geocoder = android.location.Geocoder(context, java.util.Locale("in", "ID"))
+                        @Suppress("DEPRECATION")
+                        val hasil = geocoder.getFromLocation(lat, lng, 1)
+                        val kota = hasil?.firstOrNull()?.let { it.locality ?: it.subAdminArea ?: it.adminArea }
+                        if (!kota.isNullOrBlank()) namaLokasi = kota
+                    } catch (e: Exception) { /* biarkan label default */ }
+                }
+            }
+        } catch (e: Exception) {
+            // gagal ambil lokasi (izin ditolak/GPS mati) - tetap lanjut pakai fallback Makkah
+        }
+
+        try {
+            val res = AladhanApi.service.getTimings(lat = lat, lng = lng)
             timings = res.data?.timings
         } catch (e: Exception) {
             // diam-diam gagal - kartu ini opsional, tidak boleh menghalangi layar utama
@@ -224,10 +279,10 @@ private fun JadwalShalatCard() {
             .padding(16.dp)
     ) {
         Text(
-            "🌙  Jadwal Shalat — Makkah", color = BrandGoldSoft, fontWeight = FontWeight.Bold,
+            "🌙  Jadwal Shalat — $namaLokasi", color = BrandGoldSoft, fontWeight = FontWeight.Bold,
             fontSize = 14.5.sp, fontFamily = FontFamily.Serif
         )
-        Text("Kalender Ummul Qura", color = Sand.copy(alpha = 0.7f), fontSize = 10.5.sp, modifier = Modifier.padding(bottom = 10.dp))
+        Text("Menyesuaikan lokasi HP kamu saat ini", color = Sand.copy(alpha = 0.7f), fontSize = 10.5.sp, modifier = Modifier.padding(bottom = 10.dp))
         when {
             loading -> Text("Memuat...", color = Sand, fontSize = 12.sp)
             timings == null -> Text("Jadwal tidak tersedia - periksa koneksi.", color = Sand, fontSize = 12.sp)
@@ -347,14 +402,19 @@ private fun PaketDetailScreen(paket: Paket, trips: List<TripLive>, onBack: () ->
             )
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(trips) { trip -> TripRow(trip) }
+                items(trips) { trip ->
+                    TripRow(trip) {
+                        val pesan = "Assalamu'alaikum, saya ingin daftar keberangkatan ${trip.judul} (${trip.tanggal})."
+                        bukaWhatsappAdmin(context, pesan)
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun TripRow(trip: TripLive) {
+private fun TripRow(trip: TripLive, onDaftarClick: () -> Unit) {
     val isClosed = trip.status == "CLOSED"
     Column(
         Modifier
@@ -378,6 +438,18 @@ private fun TripRow(trip: TripLive) {
             Text("Durasi: $it", color = TextMutedOnCream, fontSize = 11.sp)
         }
         Spacer(Modifier.height(4.dp))
-        Text(trip.harga ?: "-", color = BrandGreen, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Text(trip.harga ?: "-", color = BrandGreen, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            if (!isClosed) {
+                Box(
+                    Modifier
+                        .background(Color(0xFF25D366), RoundedCornerShape(8.dp))
+                        .clickable(onClick = onDaftarClick)
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text("💬 Daftar via WA", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
     }
 }

@@ -8,11 +8,10 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 import java.util.concurrent.TimeUnit
 
-// Koordinat Masjidil Haram, Makkah - waktu shalat SENGAJA tetap untuk Makkah
-// (bukan lokasi HP jamaah), sesuai permintaan: mengikuti Kalender Ummul Qura.
-private const val MAKKAH_LAT = 21.4225
-private const val MAKKAH_LNG = 39.8262
-private const val METODE_UMMUL_QURA = 4 // kode method Aladhan API untuk "Umm Al-Qura University, Makkah"
+// Fallback kalau lokasi HP tidak tersedia (izin ditolak / GPS mati): pakai Makkah.
+const val MAKKAH_LAT = 21.4225
+const val MAKKAH_LNG = 39.8262
+const val METODE_UMMUL_QURA = 4 // kode method Aladhan API untuk "Umm Al-Qura University, Makkah"
 
 data class TimingsData(
     val Fajr: String? = null,
@@ -32,8 +31,11 @@ data class AladhanResult(
 data class AladhanResponse(val data: AladhanResult? = null)
 
 interface AladhanApiService {
+    // Waktu shalat mengikuti KOORDINAT yang dikirim - dipanggil dengan lokasi HP
+    // jamaah saat ini (lihat JadwalShalatCard di PaketScreen.kt), fallback ke
+    // koordinat Makkah kalau lokasi tidak tersedia.
     @GET("v1/timings")
-    suspend fun getTimingsMakkah(
+    suspend fun getTimings(
         @Query("latitude") lat: Double = MAKKAH_LAT,
         @Query("longitude") lng: Double = MAKKAH_LNG,
         @Query("method") method: Int = METODE_UMMUL_QURA

@@ -142,6 +142,9 @@ interface ImtiyazApiService {
 
     @POST("api/skrining")
     suspend fun submitSkrining(@Body body: Map<String, @JvmSuppressWildcards Any>): SkriningResponse
+
+    @POST("api/evaluasi")
+    suspend fun submitEvaluasi(@Body body: Map<String, @JvmSuppressWildcards Any>): SkriningResponse
 }
 
 object ImtiyazApi {
