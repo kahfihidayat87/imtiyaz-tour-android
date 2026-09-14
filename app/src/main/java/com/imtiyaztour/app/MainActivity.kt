@@ -1,14 +1,20 @@
 package com.imtiyaztour.app
 
 import android.os.Bundle
+import android.os.Build
+import android.Manifest
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import com.imtiyaztour.app.screens.*
 
 class MainActivity : ComponentActivity() {
@@ -22,54 +28,64 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Tab(val label: String) { PAKET("Paket"), STATUS("Status"), BUKTI("Bukti"), GPS("GPS/SOS"), SKRINING("Skrining") }
+// 4 tab utama - Beranda, Doa & Manasik, Layanan TIDAK perlu login.
+// Akun berisi Login (kalau belum masuk) atau hub fitur privat (Status/Bukti/GPS-SOS/Dokumen).
+private enum class Tab(val label: String) { BERANDA("Beranda"), DOA("Doa & Manasik"), LAYANAN("Layanan"), AKUN("Akun") }
 
 @Composable
 fun RootApp() {
-    var tab by remember { mutableStateOf(Tab.PAKET) }
-    var jamaahId by remember { mutableStateOf("") } // dipakai bersama layar GPS/SOS
+    val context = LocalContext.current
+
+    val notifPermLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            notifPermLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    var tab by remember { mutableStateOf(Tab.BERANDA) }
+    // dibaca ulang tiap kali tab Akun dikunjungi/berubah, supaya sapaan di Beranda
+    // ikut update begitu user login/logout dari tab Akun.
+    var sessionVersion by remember { mutableStateOf(0) }
+    val namaJamaah = remember(sessionVersion) { Session.nama(context) }
 
     Scaffold(
-        containerColor = BrandGreen,
+        containerColor = CreamBg,
         bottomBar = {
-            NavigationBar(containerColor = PanelColor) {
-                NavigationBarItem(
-                    selected = tab == Tab.PAKET, onClick = { tab = Tab.PAKET },
-                    icon = { Icon(Icons.Filled.Home, contentDescription = null) }, label = { Text(Tab.PAKET.label) },
-                    colors = navColors()
-                )
-                NavigationBarItem(
-                    selected = tab == Tab.STATUS, onClick = { tab = Tab.STATUS },
-                    icon = { Icon(Icons.Filled.CheckCircle, contentDescription = null) }, label = { Text(Tab.STATUS.label) },
-                    colors = navColors()
-                )
-                NavigationBarItem(
-                    selected = tab == Tab.BUKTI, onClick = { tab = Tab.BUKTI },
-                    icon = { Icon(Icons.Filled.Upload, contentDescription = null) }, label = { Text(Tab.BUKTI.label) },
-                    colors = navColors()
-                )
-                NavigationBarItem(
-                    selected = tab == Tab.GPS, onClick = { tab = Tab.GPS },
-                    icon = { Icon(Icons.Filled.LocationOn, contentDescription = null) }, label = { Text(Tab.GPS.label) },
-                    colors = navColors()
-                )
-                NavigationBarItem(
-                    selected = tab == Tab.SKRINING, onClick = { tab = Tab.SKRINING },
-                    icon = { Icon(Icons.Filled.MedicalServices, contentDescription = null) }, label = { Text(Tab.SKRINING.label) },
-                    colors = navColors()
-                )
+            NavigationBar(containerColor = BrandGreen) {
+                Tab.values().forEach { t ->
+                    NavigationBarItem(
+                        selected = tab == t,
+                        onClick = { tab = t; sessionVersion++ },
+                        icon = { Icon(iconFor(t), contentDescription = null) },
+                        label = { Text(t.label, maxLines = 1) },
+                        colors = navColors()
+                    )
+                }
             }
         }
     ) { padding ->
-        Modifier.padding(padding) // reserved, masing-masing screen sudah fillMaxSize
+        Modifier.padding(padding)
         when (tab) {
-            Tab.PAKET -> PaketScreen()
-            Tab.STATUS -> StatusScreen()
-            Tab.BUKTI -> UploadBuktiScreen()
-            Tab.GPS -> GpsSosScreen(jamaahId = jamaahId, onJamaahIdChange = { jamaahId = it })
-            Tab.SKRINING -> SkriningScreen()
+            Tab.BERANDA -> PaketScreen(
+                namaJamaah = namaJamaah,
+                onLogout = { Session.logout(context); sessionVersion++ },
+                onOpenAkun = { tab = Tab.AKUN }
+            )
+            Tab.DOA -> DoaManasikScreen()
+            Tab.LAYANAN -> LayananScreen()
+            Tab.AKUN -> AkunScreen()
         }
     }
+}
+
+private fun iconFor(t: Tab) = when (t) {
+    Tab.BERANDA -> Icons.Filled.Home
+    Tab.DOA -> Icons.Filled.MenuBook
+    Tab.LAYANAN -> Icons.Filled.Description
+    Tab.AKUN -> Icons.Filled.Person
 }
 
 @Composable

@@ -6,49 +6,50 @@ build**, bukan file .apk jadi — environment saya tidak bisa mengompilasi APK l
 (perlu akses ke server Google yang tidak tersedia di sini). Cara build ada di bawah,
 termasuk opsi tanpa Android Studio sama sekali.
 
-## Fitur yang dibangun (mengikuti persis endpoint di app.js kamu)
+## Fitur yang dibangun
 
-| Tab di app | Endpoint backend | Fungsi |
+| Tab | Fungsi | Perlu login? |
 |---|---|---|
-| **Paket** | `GET /api/paket` | Tampilkan 5 paket umrah (Slamet, Ayem Tentrem, Linuwih, Kamulyan, Plus), tap untuk buka halaman paket |
-| **Status** | `GET /api/jamaah/:id` | Jamaah cek status Lunas/Belum Lunas + sisa tagihan pakai ID mereka |
-| **Bukti** | `POST /api/upload-bukti` | Pilih foto bukti transfer dari galeri, upload langsung ke WP |
-| **GPS/SOS** | `POST /api/update-location`, `GET /api/jamaah-live`, `POST /api/sos` | Consent checkbox → aktifkan tracking (foreground service, kirim tiap 30 detik, **hanya saat di dalam wilayah Arab Saudi**), peta live semua jamaah, tombol SOS darurat |
-| **Skrining** | `POST /api/skrining` | Form skrining kesehatan 8 kategori (A–H) |
+| **Beranda** | Sapaan, jadwal shalat Makkah (Ummul Qura), daftar paket + jadwal live, tombol chat/daftar via WhatsApp | Tidak |
+| **Doa & Manasik** | Kumpulan doa (teks + audio) dan panduan manasik | Tidak |
+| **Layanan** | Skrining Kesehatan (native) + Evaluasi Pelayanan (buka browser) | Tidak |
+| **Akun** | Login, lalu hub ke Status Pembayaran, Upload Bukti, GPS/SOS, Kelengkapan Dokumen, push notification | Ya |
 
-## Update — sudah dicocokkan dengan pastiumrah.com langsung
+## ⚠️ WAJIB — Setup Firebase sebelum build (untuk push notification)
 
-Karena kamu konfirmasi pastiumrah.com adalah sumber data aslinya, saya cek beberapa
-halaman live di situ dan sesuaikan:
+Build APK akan **GAGAL** kalau langkah ini belum dilakukan, karena plugin
+`google-services` di Gradle mencari file yang belum ada.
 
-- ✅ **5 paket cocok persis** dengan yang di-hardcode di `app.js` (Slamet, Ayem Tentrem,
-  Linuwih, Kamulyan, Plus) — dikonfirmasi dari menu "Paket Populer" di footer situs.
-- ✅ **Skrining kesehatan sudah diganti dengan 29 pertanyaan ASLI** dari
-  `pastiumrah.com/formulir-skrining-kesehatan-calon-jamaah-umrah/` (bukan placeholder
-  lagi) — lengkap dengan kategori A–H, pilihan jawaban ganda, dan field isian sesuai form
-  aslinya. Kalau admin mengubah form ini di WordPress nanti, layar
-  `SkriningScreen.kt` perlu diupdate manual mengikuti.
+1. Buka [Firebase Console](https://console.firebase.google.com), buat project baru (gratis).
+2. Di dalam project itu, klik **Add app → Android**. Isi package name persis:
+   `com.imtiyaztour.app`
+3. Download file **`google-services.json`** yang ditawarkan, lalu **taruh di folder
+   `app/`** (sejajar dengan `build.gradle.kts` di dalam folder app), sebelum push ke GitHub.
+4. Di Firebase Console: **Project Settings (ikon gerigi) → Service Accounts → Generate
+   new private key**. Ini download file JSON kredensial SERVER (beda dari
+   `google-services.json` di langkah 3).
+5. Buka WP Admin → Imtiyaz Jamaah → **Pengaturan Notifikasi** (perlu `imtiyaz-connector`
+   versi terbaru sudah aktif), paste seluruh isi file dari langkah 4 ke situ, simpan.
+6. Setelah jamaah login sekali di app (token FCM otomatis terdaftar), test kirim
+   notifikasi dari halaman Pengaturan Notifikasi tadi.
 
-**⚠️ Satu hal yang perlu kamu klarifikasi** — saya temukan kejanggalan yang belum saya
-tebak sendiri karena bisa salah arah:
+**Kalau belum mau setup Firebase dulu** dan cuma mau build APK untuk fitur lain, hapus
+3 baris ini dari `app/build.gradle.kts` dan baris terkait di `build.gradle.kts` (root)
+supaya build tidak gagal:
+```kotlin
+id("com.google.gms.google-services")   // ada di 2 file: root & app
+implementation(platform("com.google.firebase:firebase-bom:..."))
+implementation("com.google.firebase:firebase-messaging-ktx")
+```
 
-Website punya halaman terpisah **"Cek Status Dokumen"**
-(`pastiumrah.com/cek-status-dokumen/`) yang mengecek **kelengkapan dokumen** memakai
-**nomor HP**, bukan status pembayaran Lunas/Belum Lunas memakai **jamaah_id** seperti
-yang dijelaskan di README backend kamu. Ini bisa berarti dua hal:
-1. Fitur "Status" di app harusnya memang untuk kelengkapan dokumen (bukan pembayaran),
-   pakai nomor HP sebagai identifier — atau
-2. Ini fitur yang benar-benar berbeda dari yang dimaksud endpoint `/api/jamaah/:id`, dan
-   keduanya perlu ada di app.
+## ⚠️ Soal audio doa
 
-Saya belum ubah apa pun di layar Status sampai kamu konfirmasi mana yang benar — supaya
-saya tidak menebak dan malah menjauh dari kebutuhan aslinya.
-
-Selain itu, saya juga lihat halaman detail tiap paket (mis. `trip-types/paket-slamet/`)
-menampilkan **beberapa jadwal keberangkatan dengan harga masing-masing** (bukan cuma satu
-harga "mulai dari" per paket). Kalau app perlu menampilkan jadwal per keberangkatan
-(bukan cuma tipe paketnya), beri tahu saya — saat ini app hanya menampilkan level tipe
-paket sesuai struktur `PAKET_EXISTING` di `app.js`.
+`DoaManasikScreen.kt` berisi teks 7 doa umrah lengkap (Arab, Latin, terjemahan) dan
+pemutarnya SUDAH BERFUNGSI PENUH — tapi URL audio-nya masih pola nama file
+(`.../doa/01-niat-ihram.mp3` dst), **bukan file sungguhan**, karena saya tidak bisa
+menyediakan/memverifikasi rekaman doa yang sah. Upload rekaman asli (idealnya dibacakan
+ustadz/pembimbing manasik kalian sendiri) ke Media Library WordPress, lalu ganti nilai
+`audioUrl` di file itu dengan URL aslinya.
 
 ## Base URL API
 

@@ -30,12 +30,31 @@ data class Paket(
 
 // Bentuk respons /api/jamaah/:id belum pasti persis (tergantung WP), field dibuat nullable
 // supaya app tidak crash kalau ada field tambahan/kurang dari WordPress.
+data class DokumenStatus(
+    val ktp: Boolean = false, val kk: Boolean = false, val paspor: Boolean = false,
+    val foto: Boolean = false, val buku_nikah: Boolean = false, val vaksin_meningitis: Boolean = false
+)
 data class JamaahStatus(
     val nama: String? = null,
     val status: String? = null,          // "Lunas" / "Belum Lunas"
     val sisa_tagihan: String? = null,
+    val akses_keuangan: Boolean = true,
+    val akses_dokumen: Boolean = true,
+    val dokumen: DokumenStatus? = null,
     val error: String? = null
 )
+
+data class LoginRequest(val username: String, val password: String)
+data class LoginResponse(
+    val success: Boolean? = null,
+    val jamaah_id: String? = null,
+    val nama: String? = null,
+    val akses_keuangan: Boolean = true,
+    val akses_dokumen: Boolean = true
+)
+
+data class FcmTokenRequest(val jamaah_id: String, val fcm_token: String)
+data class FcmTokenResponse(val success: Boolean? = null)
 
 data class JamaahLive(
     val jamaah_id: String? = null,
@@ -79,6 +98,7 @@ data class TripLive(
     val tipe: String? = null,
     val tipe_slug: String? = null,
     val tanggal: String? = null,
+    val durasi: String? = null,
     val harga: String? = null,
     val url: String? = null,
     val status: String? = null // "OPEN" / "CLOSED"
@@ -89,6 +109,12 @@ data class PaketLiveResponse(
 )
 
 interface ImtiyazApiService {
+    @POST("api/login")
+    suspend fun login(@Body body: LoginRequest): LoginResponse
+
+    @POST("api/register-fcm-token")
+    suspend fun registerFcmToken(@Body body: FcmTokenRequest): FcmTokenResponse
+
     @GET("api/paket")
     suspend fun getPaket(): List<Paket>
 
