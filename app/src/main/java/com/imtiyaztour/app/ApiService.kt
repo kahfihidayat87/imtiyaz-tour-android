@@ -100,6 +100,7 @@ data class TripLive(
     val tanggal: String? = null,
     val durasi: String? = null,
     val harga: String? = null,
+    val harga_asli: String? = null, // harga sebelum diskon, kalau ada (untuk tampilan coret)
     val url: String? = null,
     val status: String? = null // "OPEN" / "CLOSED"
 )
