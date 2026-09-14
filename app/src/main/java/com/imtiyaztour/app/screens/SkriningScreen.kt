@@ -155,44 +155,40 @@ fun SkriningScreen() {
                     )
                 }
             }
-            // Tombol "Kirim" sengaja diletakkan sebagai item TERAKHIR di dalam list yang
-            // sama (bukan tombol melayang terpisah) - jamaah harus scroll sampai habis
-            // dulu sebelum ketemu tombol ini, sesuai permintaan "di akhir sesi".
-            item {
-                Spacer(Modifier.height(6.dp))
-                Button(
-                    onClick = {
-                        if (submitting) return@Button
-                        if (!requiredFilled()) {
-                            submitStatus = "gagal"; submitErrorDetail = "Masih ada pertanyaan wajib (*) yang belum diisi."
-                            return@Button
-                        }
-                        submitting = true
-                        scope.launch {
-                            try {
-                                val body = mutableMapOf<String, Any>("email" to email.trim())
-                                if (jamaahId.isNotBlank()) body["jamaah_id"] = jamaahId.trim()
-                                textAnswers.forEach { (k, v) -> if (v.isNotBlank()) body[k] = v }
-                                multiAnswers.forEach { (k, v) -> if (v.isNotEmpty()) body[k] = v.toList() }
-                                val res = ImtiyazApi.service.submitSkrining(body)
-                                if (res.success == true) {
-                                    submitStatus = "sukses"
-                                } else {
-                                    submitStatus = "gagal"; submitErrorDetail = res.error ?: "Tidak diketahui"
-                                }
-                            } catch (e: Exception) {
-                                submitStatus = "gagal"; submitErrorDetail = "Gagal mengirim - periksa koneksi internet."
-                            } finally { submitting = false }
-                        }
-                    },
-                    enabled = !submitting,
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandGold),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(if (submitting) "Mengirim..." else "Kirim", color = BrandGreen, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+        }
+
+        // Tombol "Kirim" SELALU TERLIHAT di bawah (tidak perlu scroll habis dulu).
+        Spacer(Modifier.height(10.dp))
+        Button(
+            onClick = {
+                if (submitting) return@Button
+                if (!requiredFilled()) {
+                    submitStatus = "gagal"; submitErrorDetail = "Masih ada pertanyaan wajib (*) yang belum diisi."
+                    return@Button
                 }
-                Spacer(Modifier.height(10.dp))
-            }
+                submitting = true
+                scope.launch {
+                    try {
+                        val body = mutableMapOf<String, Any>("email" to email.trim())
+                        if (jamaahId.isNotBlank()) body["jamaah_id"] = jamaahId.trim()
+                        textAnswers.forEach { (k, v) -> if (v.isNotBlank()) body[k] = v }
+                        multiAnswers.forEach { (k, v) -> if (v.isNotEmpty()) body[k] = v.toList() }
+                        val res = ImtiyazApi.service.submitSkrining(body)
+                        if (res.success == true) {
+                            submitStatus = "sukses"
+                        } else {
+                            submitStatus = "gagal"; submitErrorDetail = res.error ?: "Tidak diketahui"
+                        }
+                    } catch (e: Exception) {
+                        submitStatus = "gagal"; submitErrorDetail = "Gagal mengirim - periksa koneksi internet."
+                    } finally { submitting = false }
+                }
+            },
+            enabled = !submitting,
+            colors = ButtonDefaults.buttonColors(containerColor = BrandGold),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(if (submitting) "Mengirim..." else "Kirim", color = BrandGreen, fontWeight = FontWeight.Bold, fontSize = 15.sp)
         }
 
         submitStatus?.let { status ->
