@@ -18,7 +18,7 @@ import com.imtiyaztour.app.*
  * ke tabel WordPress yang sama persis dengan yang dipakai plugin form
  * masing-masing yang sudah aktif. Tidak perlu login untuk mengakses keduanya.
  */
-private enum class LayananSub { HUB, SKRINING, EVALUASI, FASILITAS }
+private enum class LayananSub { HUB, SKRINING, EVALUASI, FASILITAS, ITINERARY }
 
 @Composable
 fun LayananScreen() {
@@ -28,6 +28,7 @@ fun LayananScreen() {
         LayananSub.SKRINING -> WithBackToLayanan({ sub = LayananSub.HUB }) { SkriningScreen() }
         LayananSub.EVALUASI -> WithBackToLayanan({ sub = LayananSub.HUB }) { EvaluasiScreen() }
         LayananSub.FASILITAS -> WithBackToLayanan({ sub = LayananSub.HUB }) { FasilitasPaketScreen() }
+        LayananSub.ITINERARY -> WithBackToLayanan({ sub = LayananSub.HUB }) { ItineraryScreen() }
         LayananSub.HUB -> LayananHub(onOpen = { sub = it })
     }
 }
@@ -58,6 +59,12 @@ private fun LayananHub(onOpen: (LayananSub) -> Unit) {
             icon = "🏨", judul = "Fasilitas & Akomodasi Paket",
             deskripsi = "Bandingkan hotel dan transportasi tiap paket umrah.",
             onClick = { onOpen(LayananSub.FASILITAS) }
+        )
+        Spacer(Modifier.height(12.dp))
+        LayananCard(
+            icon = "🗺️", judul = "Itinerary Perjalanan",
+            deskripsi = "Contoh susunan acara harian selama program umrah.",
+            onClick = { onOpen(LayananSub.ITINERARY) }
         )
         Spacer(Modifier.height(12.dp))
         LayananCard(

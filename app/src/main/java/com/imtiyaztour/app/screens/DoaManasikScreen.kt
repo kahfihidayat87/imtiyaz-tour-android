@@ -116,20 +116,33 @@ private val PANDUAN_MANASIK = listOf(
 
 @Composable
 fun DoaManasikScreen() {
-    var tab by remember { mutableStateOf(0) } // 0 = Doa, 1 = Manasik
+    var tab by remember { mutableStateOf(0) } // 0 = Doa, 1 = Manasik, 2 = Al-Qur'an
 
     Column(Modifier.fillMaxSize().background(BrandGreen).padding(16.dp)) {
         Text("Doa & Panduan Manasik", color = Sand, fontSize = 22.sp, fontWeight = FontWeight.Bold)
         Text("Bisa diakses kapan saja, tanpa perlu login", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp, bottom = 14.dp))
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SegmentButton("Kumpulan Doa", tab == 0, Modifier.weight(1f)) { tab = 0 }
-            SegmentButton("Panduan Manasik", tab == 1, Modifier.weight(1f)) { tab = 1 }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            SegmentButton("Doa", tab == 0, Modifier.weight(1f)) { tab = 0 }
+            SegmentButton("Manasik", tab == 1, Modifier.weight(1f)) { tab = 1 }
+            SegmentButton("Al-Qur'an", tab == 2, Modifier.weight(1f)) { tab = 2 }
         }
         Spacer(Modifier.height(12.dp))
 
-        if (tab == 0) DoaList() else ManasikList()
+        when (tab) {
+            0 -> DoaList()
+            1 -> ManasikList()
+            else -> QuranScreenEmbed()
+        }
     }
+}
+
+@Composable
+private fun QuranScreenEmbed() {
+    // QuranScreen sudah punya background/padding sendiri (dipakai juga kalau
+    // suatu saat dibuka dari tempat lain) - Box di sini sekadar membiarkannya
+    // mengisi sisa layar segmen ini.
+    Box(Modifier.fillMaxSize()) { QuranScreen() }
 }
 
 @Composable

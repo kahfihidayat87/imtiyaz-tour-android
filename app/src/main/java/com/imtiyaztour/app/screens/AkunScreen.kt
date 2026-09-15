@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.imtiyaztour.app.*
 
-private enum class AkunSub { HUB, STATUS, BUKTI, GPS, DOKUMEN }
+private enum class AkunSub { HUB, STATUS, BUKTI, GPS, DOKUMEN, RADIO }
 
 @Composable
 fun AkunScreen() {
@@ -33,6 +33,7 @@ fun AkunScreen() {
         AkunSub.BUKTI -> WithBackHeader({ sub = AkunSub.HUB }) { UploadBuktiScreen() }
         AkunSub.GPS -> WithBackHeader({ sub = AkunSub.HUB }) { GpsSosScreen(jamaahId = jamaahId, onJamaahIdChange = { jamaahId = it }) }
         AkunSub.DOKUMEN -> WithBackHeader({ sub = AkunSub.HUB }) { DocumentScreen(jamaahId = Session.jamaahId(context)) }
+        AkunSub.RADIO -> WithBackHeader({ sub = AkunSub.HUB }) { RadioTlScreen() }
         AkunSub.HUB -> AkunHub(
             aksesKeuangan = Session.aksesKeuangan(context),
             aksesDokumen = Session.aksesDokumen(context),
@@ -77,6 +78,8 @@ private fun AkunHub(
         HubCard("📤", "Upload Bukti Transfer", "Kirim bukti pembayaran ke admin") { onOpen(AkunSub.BUKTI) }
         Spacer(Modifier.height(10.dp))
         HubCard("📍", "GPS & SOS", "Tracking lokasi dan tombol darurat") { onOpen(AkunSub.GPS) }
+        Spacer(Modifier.height(10.dp))
+        HubCard("🎙️", "Radio TL", "Dengarkan suara TL langsung dari HP") { onOpen(AkunSub.RADIO) }
         if (aksesDokumen) {
             Spacer(Modifier.height(10.dp))
             HubCard("📄", "Kelengkapan Dokumen", "Cek status KTP, paspor, dan dokumen lain") { onOpen(AkunSub.DOKUMEN) }

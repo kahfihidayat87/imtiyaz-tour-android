@@ -56,6 +56,10 @@ data class LoginResponse(
 data class FcmTokenRequest(val jamaah_id: String, val fcm_token: String)
 data class FcmTokenResponse(val success: Boolean? = null)
 
+data class RadioBroadcastRequest(val channel: String, val mime: String, val audio: String)
+data class RadioClip(val id: Int? = null, val mime: String? = null, val audio: String? = null, val ts: Long? = null)
+data class RadioHistoryResponse(val history: List<RadioClip> = emptyList())
+
 data class JamaahLive(
     val jamaah_id: String? = null,
     val nama: String? = null,
@@ -115,6 +119,12 @@ interface ImtiyazApiService {
 
     @POST("api/register-fcm-token")
     suspend fun registerFcmToken(@Body body: FcmTokenRequest): FcmTokenResponse
+
+    @POST("api/radio-broadcast")
+    suspend fun radioBroadcast(@Body body: RadioBroadcastRequest): FcmTokenResponse
+
+    @GET("api/radio-history")
+    suspend fun radioHistory(@Query("channel") channel: String): RadioHistoryResponse
 
     @GET("api/paket")
     suspend fun getPaket(): List<Paket>
